@@ -33,14 +33,10 @@ namespace Toggl
         public bool? IsBillable { get; set; }
 
         [JsonProperty(PropertyName = "start")]
-        //[JsonConverter(typeof(IsoDateTimeConverter))]
-        //public DateTime? Start { get; set; }
-        public string Start { get; set; }
+        public DateTimeOffset Start { get; set; }
 
         [JsonProperty(PropertyName = "stop")]
-        //[JsonConverter(typeof(IsoDateTimeConverter))]
-        //public DateTime? Stop { get; set; }
-        public string Stop { get; set; }
+        public DateTimeOffset Stop { get; set; }
 
         [JsonProperty(PropertyName = "duration")]
         public long? Duration { get; set; }
