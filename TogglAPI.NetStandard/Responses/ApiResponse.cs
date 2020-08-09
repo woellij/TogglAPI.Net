@@ -33,9 +33,8 @@ namespace Toggl
             }
             else if (Data != null)
             {
-                if (Data is JToken)
+                if (Data is JToken token)
                 {
-                    var token = JToken.FromObject(Data);
                     obj = token.ToObject<T>();
                 }
                 else
