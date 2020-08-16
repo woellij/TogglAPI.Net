@@ -12,7 +12,7 @@ namespace Toggl
     /// </summary>
     public class Toggl
     {
-        private IApiService ApiService { get; set; }
+        public IApiService ApiService { get; private set; }
 
         /// <summary>
         /// Holds methods to access client information
