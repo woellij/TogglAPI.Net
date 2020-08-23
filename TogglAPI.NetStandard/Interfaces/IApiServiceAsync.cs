@@ -34,5 +34,6 @@ namespace Toggl.Interfaces
 
         System.Threading.Tasks.Task Initialize();
 
+        Task<(HttpWebResponse authResponse, string content)> GetAsync(ApiRequest apiRequest);
     }
 }

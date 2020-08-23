@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Toggl.DataObjects;
@@ -184,45 +186,7 @@ namespace Toggl.Services
 
         private async System.Threading.Tasks.Task<ApiResponse> Get(ApiRequest apiRequest)
         {
-            string value = "";
-
-            if (apiRequest.Args != null && apiRequest.Args.Count > 0)
-            {
-                apiRequest.Args.ForEach(e => value += e.Key + "=" + System.Uri.EscapeDataString(e.Value) + "&");
-                value = value.Trim('&');
-            }
-
-            if (apiRequest.Method == "GET" && !string.IsNullOrEmpty(value))
-            {
-                apiRequest.Url += "?" + value;
-            }
-
-            var authRequest = (HttpWebRequest)HttpWebRequest.Create(apiRequest.Url);
-
-            authRequest.Method = apiRequest.Method;
-			authRequest.ContentType = apiRequest.ContentType;
-			authRequest.Credentials = CredentialCache.DefaultNetworkCredentials;
-			
-            authRequest.Headers.Add(GetAuthHeader());
-
-            if (apiRequest.Method == "POST" || apiRequest.Method == "PUT")
-            {
-	            var utd8WithoutBom = new UTF8Encoding(false);
-
-                value += apiRequest.Data;
-				authRequest.ContentLength = utd8WithoutBom.GetByteCount(value);
-				using (var writer = new StreamWriter(authRequest.GetRequestStream(), utd8WithoutBom))
-                {
-                    writer.Write(value);
-                }
-            }
-            
-            var authResponse = (HttpWebResponse)authRequest.GetResponse();
-            string content = "";
-            using (var reader = new StreamReader(authResponse.GetResponseStream(), Encoding.UTF8))
-            {
-                content = reader.ReadToEnd();
-            }
+            (HttpWebResponse authResponse, string content) = await this.GetAsync(apiRequest);
 
             if ((string.IsNullOrEmpty(content)
                 || content.ToLower() == "null")
@@ -261,6 +225,54 @@ namespace Toggl.Services
                 return rsp;
             }
 
+        }
+
+        public Task<(HttpWebResponse authResponse, string content)> GetAsync(ApiRequest apiRequest)
+        {
+            return System.Threading.Tasks.Task.Run(
+                () =>
+                {
+                    string value = "";
+
+                    if (apiRequest.Args != null && apiRequest.Args.Count > 0)
+                    {
+                        apiRequest.Args.ForEach(e => value += e.Key + "=" + System.Uri.EscapeDataString(e.Value) + "&");
+                        value = value.Trim('&');
+                    }
+
+                    if (apiRequest.Method == "GET" && !string.IsNullOrEmpty(value))
+                    {
+                        apiRequest.Url += "?" + value;
+                    }
+
+                    var authRequest = (HttpWebRequest)WebRequest.Create(apiRequest.Url);
+
+                    authRequest.Method = apiRequest.Method;
+                    authRequest.ContentType = apiRequest.ContentType;
+                    authRequest.Credentials = CredentialCache.DefaultNetworkCredentials;
+
+                    authRequest.Headers.Add(this.GetAuthHeader());
+
+                    if (apiRequest.Method == "POST" || apiRequest.Method == "PUT")
+                    {
+                        var utd8WithoutBom = new UTF8Encoding(false);
+
+                        value += apiRequest.Data;
+                        authRequest.ContentLength = utd8WithoutBom.GetByteCount(value);
+                        using (var writer = new StreamWriter(authRequest.GetRequestStream(), utd8WithoutBom))
+                        {
+                            writer.Write(value);
+                        }
+                    }
+
+                    var authResponse = (HttpWebResponse)authRequest.GetResponse();
+                    string content = "";
+                    using (var reader = new StreamReader(authResponse.GetResponseStream(), Encoding.UTF8))
+                    {
+                        content = reader.ReadToEnd();
+                    }
+                    return (authResponse, content);
+                });
         }
 
         private string GetAuthHeader()
