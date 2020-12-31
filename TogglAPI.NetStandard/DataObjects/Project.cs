@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+
 using Newtonsoft.Json;
 using Toggl.DataObjects;
 
@@ -8,7 +10,7 @@ namespace Toggl
     /// 
     ///https://github.com/toggl/toggl_api_docs/blob/master/chapters/projects.md#projects
     /// </summary>
-    public class Project : BaseDataObject
+    public partial class Project : BaseDataObject
     {
         /// <summary>
         /// id: The id of the project
